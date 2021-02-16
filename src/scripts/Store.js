@@ -1,4 +1,5 @@
 import Observable from "./Observable";
+import { arraysEqual } from "../utility"
 
 class Store extends Observable {
   constructor() {
@@ -14,8 +15,25 @@ class Store extends Observable {
     return this.filter();
   }
 
+  formatProductTypes(productTypes) {
+    return productTypes.filter((type) => type !== "Phone").map((type) => type.replace("Fibre Broadband", "Broadband").toLowerCase());
+  }
+
   filter() {
-    return this.state.deals;
+    let newDeals = this.state.deals.slice();
+
+    // Filter the deals based on the product filters
+    if (this.state.productFilters && this.state.productFilters.length > 0) {
+      // Format the product types array to remove Phones/Fibre Broadband and put it to lower case
+      // Sort the two string arrays and then compare them to check they're equal
+      newDeals = this.state.deals.filter((deal) => arraysEqual(this.formatProductTypes(deal.productTypes).sort(), this.state.productFilters.sort()));
+    }
+    // Filter the deals based on the product id / provider.id
+    if (this.state.providerFilter) {
+      newDeals = newDeals.filter((deal) => deal.provider.id === this.state.providerFilter);
+    }
+
+    return newDeals;
   }
 
   setDeals(data) {
